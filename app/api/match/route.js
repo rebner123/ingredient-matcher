@@ -1,45 +1,67 @@
 import { NextResponse } from 'next/server';
-import { findBestMatch } from '@/lib/data/ingredients';
+import Anthropic from '@anthropic-ai/sdk';
+
+// Debug log the API key (don't log the full key in production!)
+console.log('API Key present:', !!process.env.ANTHROPIC_API_KEY);
+
+// Initialize Anthropic client
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(request) {
   try {
     const { ingredient } = await request.json();
-    
-    // Parse the ingredient string
-    const pattern = /^([\d.]+)\s+([a-zA-Z]+)\s+(?:of\s+)?([a-zA-Z]+)(?:\s+(.+))?$/;
-    const match = ingredient.match(pattern);
-    
-    if (match) {
-      const [_, quantity, unit, ingredientName, notes] = match;
-      
-      // Find the best match in the database
-      const bestMatch = await findBestMatch(ingredientName);
-      
-      if (!bestMatch) {
-        return NextResponse.json(
-          { error: "No matching ingredient found in database" },
-          { status: 404 }
-        );
-      }
-      
-      return NextResponse.json({
-        quantity: parseFloat(quantity),
-        unit: unit.toLowerCase(),
-        ingredient: ingredientName.toLowerCase(),
-        notes: notes ? notes.toLowerCase() : null,
-        match: bestMatch
+    console.log('Received ingredient:', ingredient);
+
+    // First, try a simple Claude API call to test connection
+    try {
+      const message = await anthropic.messages.create({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Parse this ingredient into JSON format: "${ingredient}"`
+        }]
       });
+
+      console.log('Claude response:', message.content);
+
+      // Mock response for now
+      const response = {
+        quantity: 2,
+        unit: 'lb',
+        ingredient: 'flour',
+        notes: null,
+        match: {
+          id: '123',
+          name: 'All-purpose flour',
+          image: null
+        },
+        isValidIngredient: true,
+        estimatedGrams: 907 // 2 lb = 907g
+      };
+
+      return NextResponse.json(response);
+
+    } catch (claudeError) {
+      console.error('Claude API Error:', claudeError);
+      return NextResponse.json(
+        { 
+          error: "Claude API Error",
+          details: claudeError.message
+        },
+        { status: 500 }
+      );
     }
-    
-    return NextResponse.json(
-      { error: "Could not parse ingredient string" },
-      { status: 400 }
-    );
-    
+
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('Route Error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: error.message
+      },
       { status: 500 }
     );
   }
