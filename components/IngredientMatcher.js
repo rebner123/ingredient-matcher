@@ -48,7 +48,7 @@ export default function IngredientMatcher() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="4 lb of chicken diced"
+                placeholder='4 lb of chicken diced'
               />
             </div>
             
