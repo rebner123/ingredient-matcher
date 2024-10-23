@@ -40,9 +40,9 @@ export default function IngredientMatcher() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="ingredient" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Enter ingredient (e.g., "3 lb of chicken diced")
-              </label>
+            <label htmlFor="ingredient" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+  Enter ingredient (e.g., &quot;3 lb of chicken diced&quot;)
+</label>
               <Input
                 id="ingredient"
                 type="text"
